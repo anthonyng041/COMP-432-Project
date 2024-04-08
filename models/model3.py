@@ -1,72 +1,53 @@
-import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-class AdvancedEEGNet(nn.Module):
-    """
-    AdvancedEEGNet incorporates modern deep learning architectures to provide a comprehensive
-    tool for EEG signal analysis, suitable for complex and high-accuracy requirements.
-    
-    Parameters:
-    -----------
-    input_shape : tuple
-        Expected input shape of the data, formatted as (batch, time, EEG channels, 1).
-    num_classes : int
-        The number of output classes or predictions the network should generate.
-    """
-    def __init__(self, input_shape, num_classes):
-        super(AdvancedEEGNet, self).__init__()
+class model3(nn.Module):
+    def __init__(self, input_shape, num_classes, dropout_rate):
+        super(model3, self).__init__()
+        # Unpack input shape, assuming form (_, T, C, _), where T and C represent temporal and channel dimensions.
         _, T, C, _ = input_shape
-        
-        # Layer 1: Dilated Temporal Convolution
-        self.dilated_conv = nn.Conv2d(1, 64, (3, 1), dilation=(2, 1), padding='same')
-        self.bn1 = nn.BatchNorm2d(64)
-        
-        # Multi-Head Self-Attention
-        self.attention = nn.MultiheadAttention(embed_dim=64, num_heads=8)
-        
-        # Residual Block
-        self.res_block = nn.Sequential(
-            nn.Conv2d(64, 128, (3, 1), padding='same'),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Conv2d(128, 64, (1, 1)),  # Pointwise to match dimensions
-            nn.BatchNorm2d(64)
-        )
-        self.relu = nn.ReLU()
 
-        # Depthwise and Pointwise Convolution
-        self.depthwise = nn.Conv2d(64, 64 * 2, (1, C), groups=64)
-        self.pointwise = nn.Conv2d(64 * 2, 128, (1, 1))
-        self.bn2 = nn.BatchNorm2d(128)
+        # First convolutional layer: Expands channel dimension from T to 16, using a kernel size of (1, 5)
+        self.conv1 = nn.Conv2d(T, 16, (1, 5), padding='same')
+        self.bn1 = nn.BatchNorm2d(16)  # Batch normalization for the first layer
+
+        # Second convolutional layer: Expands channel dimension from 16 to 32, using the same kernel size (1, 5)
+        self.conv2 = nn.Conv2d(16, 32, (1, 5), padding='same')
+        self.bn2 = nn.BatchNorm2d(32)
+        # Residual connection to adjust channel dimensions from 16 to 32
+        self.res1 = nn.Conv2d(16, 32, (1, 1))
+        
+        # Third convolutional layer: Doubles the number of channels to 64 using a (1, 1) kernel and group convolution
+        self.conv3 = nn.Conv2d(32, 32 * 2, (1, 1), groups=32)
+        self.bn3 = nn.BatchNorm2d(32 * 2)
+        
+        # Adaptive average pooling layer to reduce the spatial dimensions to 1x1 for each feature map
+        self.adaptive_pool = nn.AdaptiveAvgPool2d((1, 1))
+        
+        # Two fully connected layers: the first one maps the pooled features to a 100-dimensional space
+        self.fc1 = nn.Linear(32 * 2, 100)
+        self.fc2 = nn.Linear(100, num_classes)
+        
+        # Activation function ELU used across the network
         self.activation = nn.ELU()
-
-        # Global Pooling and Output Layer
-        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(128, num_classes)
+        # Dropout layer for regularization
+        self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
-        """
-        Defines the computation performed at every call of the model.
-
-        Parameters:
-        -----------
-        x : torch.Tensor
-            The input tensor with shape matching the input_shape.
-        
-        Returns:
-        --------
-        torch.Tensor
-            The output tensor after processing through the network, with logits for each class.
-        """
-        x = self.bn1(self.relu(self.dilated_conv(x)))
-        x = x.permute(0, 3, 2, 1)  # Rearrange dimensions for attention
-        x, _ = self.attention(x, x, x)
-        x = x.permute(0, 3, 2, 1)  # Revert dimensions
-        res = x
-        x = self.res_block(x) + res  # Apply residual connection
-        x = self.depthwise(x)
-        x = self.bn2(self.activation(self.pointwise(x)))
-        x = self.global_pool(x)
-        x = torch.flatten(x, 1)
-        x = self.fc(x)
-        return x
+        # Apply first convolutional layer, batch normalization, and activation
+        x = self.bn1(self.activation(self.conv1(x)))
+        # Save output for residual connection
+        res = self.res1(x)
+        # Apply second convolutional layer, add residual, apply batch normalization, and activation
+        x = self.bn2(self.activation(self.conv2(x) + res))
+        # Apply third convolutional layer, batch normalization, and activation
+        x = self.bn3(self.activation(self.conv3(x)))
+        # Apply adaptive pooling
+        x = self.adaptive_pool(x)
+        # Flatten the output and apply the first fully connected layer, dropout, and activation
+        x = x.view(x.size(0), -1)
+        x = self.dropout(self.activation(self.fc1(x)))
+        # Apply second fully connected layer
+        x = self.fc2(x)
+        # Return the log_softmax of the output
+        return F.log_softmax(x, dim=1)
