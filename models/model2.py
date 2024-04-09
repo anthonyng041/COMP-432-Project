@@ -4,7 +4,6 @@ import torch.nn.functional as F
 class model2(nn.Module):
     def __init__(self, input_shape, num_classes, dropout_rate):
         super(model2, self).__init__()
-        # Decompose the input shape. Assumes input_shape is in the form (_, T, C, _), where T is temporal and C is channels.
         _, T, C, _ = input_shape
 
         # First convolutional layer with 16 filters, kernel size (3, 1), applying padding to maintain dimension

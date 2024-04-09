@@ -167,3 +167,65 @@ model: !new:models.model1.model1
     num_classes: !ref <n_classes>
     dropout_rate: !ref <dropout>
 """
+
+h = """
+!./run_hparam_optimization.sh --hparams '/notebooks/model1_hyperparams.yaml' \
+--data_folder '/notebooks/data/BNCI2014001'\
+--cached_data_folder '/notebooks/data' \
+--output_folder '/notebooks/results/hyperparameter-search/BNCI2014001' \
+--nsbj 9 --nsess 2 --nruns 8 --train_mode 'leave-one-session-out' \
+--exp_name 'model1-run' \
+--nsbj_hpsearch 3 --nsess_hpsearch 2 \
+--nruns_eval 4 \
+--eval_metric acc \
+--exp_max_trials 6
+
+!./run_hparam_optimization.sh --hparams '/notebooks/benchmarks/benchmarks/MOABB/hparams/MotorImagery/BNCI2014001/EEGNet.yaml' \
+--data_folder '/notebooks/data/BNCI2014001'\
+--cached_data_folder '/notebooks/data' \
+--output_folder '/notebooks/results/hyperparameter-search/BNCI2014001' \
+--nsbj 9 --nsess 2 --nruns 3 --train_mode 'leave-one-session-out' \
+--exp_name 'model1-run' \
+--nsbj_hpsearch 3 --nsess_hpsearch 2 \
+--nruns_eval 1 \
+--eval_metric acc \
+--exp_max_trials 4
+
+
+%%capture
+!git clone https://github.com/speechbrain/benchmarks
+%cd /notebooks/benchmarks
+!git checkout eeg
+
+%cd /notebooks/benchmarks/benchmarks/MOABB
+!pip install -r extra-requirements.txt # Install additional dependencies
+
+
+
+
+%%capture
+# Clone SpeechBrain repository (development branch)
+%cd /notebooks/
+!git clone https://github.com/speechbrain/speechbrain/
+%cd /notebooks/speechbrain/
+
+# Install required dependencies
+!pip install -r requirements.txt
+
+# Install SpeechBrain in editable mode
+!pip install -e .
+
+%cd /notebooks/
+
+
+#!git clone https://github.com/anthonyng041/COMP-432-Project.git
+#shutil.move("/model1.py", "/content/benchmarks/benchmarks/MOABB/models")
+import shutil
+shutil.move("/notebooks/model1.py", "/notebooks/benchmarks/benchmarks/MOABB/models")
+
+
+
+
+
+
+"""

@@ -2,35 +2,36 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class model1(nn.Module):
-    def __init__(self, input_shape, num_classes, dropout_rate):
+    def __init__(self, input_shape, num_classes, dropout_rate, hparam1 = 32, hparam2 = 64, hparam3 = 128, hparam4 = (3,1), hparam5 = (1,1)):
         super(model1, self).__init__()
+        # Assumes input_shape is in the form (_, T, C, _), where T and C are the temporal and channel dimensions respectively.
         _, T, C, _ = input_shape
 
-        # First convolution layer with 32 filters, kernel size (1,3)
-        self.conv1 = nn.Conv2d(T, 32, (1, 3), padding='same')
-        self.bn1 = nn.BatchNorm2d(32)  # Batch normalization for stability
+        # First convolution layer with 32 filters, kernel size (1,3), padding enabled to keep dimensions constant
+        self.conv1 = nn.Conv2d(T, hparam1, hparam4, padding='same')
+        self.bn1 = nn.BatchNorm2d(hparam1)  # Batch normalization for stability
         self.activation1 = nn.ELU()    # ELU activation function for non-linearity
 
         # Second convolution layer, using grouped convolutions for depthwise convolutions
-        self.conv2 = nn.Conv2d(32, 32, (1, 3), groups=32, padding='same')
-        self.bn2 = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(hparam1, hparam1, hparam4, groups=32, padding='same')
+        self.bn2 = nn.BatchNorm2d(hparam1)
         self.activation2 = nn.ELU()
 
         # Third convolution layer increasing channels from 32 to 64
-        self.conv3 = nn.Conv2d(32, 64, (1, 1))
-        self.bn3 = nn.BatchNorm2d(64)
+        self.conv3 = nn.Conv2d(hparam1, hparam2, hparam5)
+        self.bn3 = nn.BatchNorm2d(hparam2)
         self.activation3 = nn.ELU()
 
-        # Fourth convolution layer further increasing channels to 128
-        self.conv4 = nn.Conv2d(64, 128, (1, 3), padding='same', dilation=2)
-        self.bn4 = nn.BatchNorm2d(128)
+        # Fourth convolution layer further increasing channels to 128, with dilation to increase the receptive field
+        self.conv4 = nn.Conv2d(hparam2, hparam3, hparam4, padding='same', dilation=2)
+        self.bn4 = nn.BatchNorm2d(hparam3)
         self.activation4 = nn.ELU()
 
         # Adaptive average pooling to reduce spatial dimensions to 1x1
-        self.adaptive_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.adaptive_pool = nn.AdaptiveAvgPool2d(hparam5)
 
         # Fully connected layer to map the features to the class scores
-        self.fc1 = nn.Linear(128, num_classes)
+        self.fc1 = nn.Linear(hparam3, num_classes)
 
         # Dropout for regularization to reduce overfitting
         self.dropout = nn.Dropout(dropout_rate)

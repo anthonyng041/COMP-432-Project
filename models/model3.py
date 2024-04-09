@@ -4,7 +4,6 @@ import torch.nn.functional as F
 class model3(nn.Module):
     def __init__(self, input_shape, num_classes, dropout_rate):
         super(model3, self).__init__()
-        # Unpack input shape, assuming form (_, T, C, _), where T and C represent temporal and channel dimensions.
         _, T, C, _ = input_shape
 
         # First convolutional layer: Expands channel dimension from T to 16, using a kernel size of (1, 5)
