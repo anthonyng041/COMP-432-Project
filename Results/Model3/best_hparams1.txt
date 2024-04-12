@@ -1,0 +1,9 @@
+avg_models: 14
+batch_size_exponent: 6
+dropout: 0.1981
+fmax: 34.2
+fmin: 4.7
+lr: 0.0001
+n_steps_channel_selection: 1
+number_of_epochs: 405
+tmax: 1.7

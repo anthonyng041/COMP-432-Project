@@ -1,0 +1,13 @@
+hparams: /notebooks/results/hyperparameter-search/BNCI2014001/m2/best_hparams.yaml
+data_folder: /notebooks/data/BNCI2014001
+cached_data_folder: /notebooks/data/BNCI2014001/pkl
+output_folder: /notebooks/results/hyperparameter-search/BNCI2014001/m2/best/VHtqsd
+nsbj: 9
+nsess: 2
+seed: 1986
+nruns: 1
+eval_metric: acc
+eval_set: test
+train_mode: leave-one-session-out
+rnd_dir: True
+additional flags: 
