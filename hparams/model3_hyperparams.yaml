@@ -135,7 +135,7 @@ hparam4: 3 # @orion_step1: --hparam4~"uniform(2, 24, discrete=True)"
 hparam5: 2 # @orion_step1: --hparam5~"uniform(1, 23, discrete=True)"
 hparam6: 2 # @orion_step1: --hparam6~"uniform(1, 23, discrete=True)"
 
-model: !new:models.test3.model3
+model: !new:models.model3.model3
     input_shape: !ref <input_shape>
     num_classes: !ref <n_classes>
     dropout_rate: !ref <dropout>
