@@ -128,8 +128,20 @@ normalize: !name:speechbrain.processing.signal_processing.mean_std_norm
 # MODEL
 input_shape: [null, !ref <T>, !ref <C>, null]
 dropout: 0.008464 # @orion_step1: --dropout~"uniform(0.0, 0.5)"
+hparam1: 16 # @orion_step1: --hparam1~"uniform(1, 32, discrete=True)"
+hparam2: 32 # @orion_step1: --hparam2~"uniform(32, 72, discrete=True)"
+hparam3: 100 # @orion_step1: --hparam3~"uniform(95, 145, discrete=True)"
+hparam4: 3 # @orion_step1: --hparam4~"uniform(2, 24, discrete=True)"
+hparam5: 2 # @orion_step1: --hparam5~"uniform(1, 23, discrete=True)"
+hparam6: 2 # @orion_step1: --hparam6~"uniform(1, 23, discrete=True)"
 
-model: !new:models.model3.model3
+model: !new:models.test3.model3
     input_shape: !ref <input_shape>
     num_classes: !ref <n_classes>
     dropout_rate: !ref <dropout>
+    hparam1: !ref <hparam1>
+    hparam2: !ref <hparam2>
+    hparam3: !ref <hparam3>
+    hparam4: [!ref <hparam4>, 1]
+    hparam5: [!ref <hparam5>, 1]
+    hparam6: [!ref <hparam6>, 1]
