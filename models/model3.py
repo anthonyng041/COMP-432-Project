@@ -3,65 +3,63 @@ import torch.nn.functional as F
 
 class model3(nn.Module):
     """
-    A convolutional neural network designed for handling multidimensional data with both simple and complex
-    convolutions. This model uses deep convolutional layers with increasing channel size, batch normalization,
+    This model uses deep convolutional layers with increasing channel size, batch normalization,
     ELU activations, and adaptive pooling. It includes residual connections to help with training deeper networks
-    and uses dropout for regularization. The model is suitable for classification tasks requiring extraction of
-    complex patterns from spatial and temporal data.
-
+    and uses dropout for regularization.
+    
     Arguments
     ---------
     input_shape : tuple
-        The shape of the input tensor, expected to be (batch_size, T, C, spatial_dim), where T is the temporal
-        dimension and C is the number of channels.
+        The shape of the input.
     num_classes : int
         The number of output classes for the classification task.
     dropout_rate : float
         The dropout probability used in the dropout layer to prevent overfitting.
-    hparam1 : int, default=16
+    hparam1 : int
         The number of filters in the first convolutional layer.
-    hparam2 : int, default=32
+    hparam2 : int
         The number of filters in the second convolutional layer.
-    hparam3 : int, default=100
+    hparam3 : int
         The number of neurons in the first fully connected layer after pooling.
-    hparam4 : tuple, default=(1,5)
+    hparam4 : tuple
         The kernel size for the first convolutional layer.
-    hparam5 : tuple, default=(1,5)
+    hparam5 : tuple
         The kernel size for the second convolutional layer.
-    hparam6 : tuple, default=(1,1)
-        The kernel size for the third convolutional layer, used primarily for group convolutions.
+    hparam6 : tuple
+        The kernel size for the third convolutional layers.
 
     Example
     -------
     >>> import torch
-    >>> inp_tensor = torch.rand([1, 64, 3, 1])  # Example input tensor with shape (batch_size, T, C, spatial_dim)
-    >>> model = model3(input_shape=inp_tensor.shape, num_classes=10, dropout_rate=0.3)
+    >>> inp_tensor = torch.rand([1, 64, 3, 1])
+    >>> model = model3(input_shape=inp_tensor.shape)
     >>> output = model(inp_tensor)
-    >>> print(output.shape)
+    >>> output.shape
     torch.Size([1, 10])
     """
     def __init__(self, input_shape, num_classes, dropout_rate, hparam1 = 16, hparam2 = 32, hparam3 = 100, hparam4 = (1,5), hparam5 = (1,5), hparam6 = (1,1)):
         super(model3, self).__init__()
+        # Extract T and C from input_shape
         _, T, C, _ = input_shape
 
-        # First convolutional layer: Expands channel dimension from T to 16, using a kernel size of (1, 5)
+        # First convolutional layer
         self.conv1 = nn.Conv2d(T, hparam1, hparam4, padding='same')
         self.bn1 = nn.BatchNorm2d(hparam1)  # Batch normalization for the first layer
 
-        # Second convolutional layer: Expands channel dimension from 16 to 32, using the same kernel size (1, 5)
+        # Second convolutional layer
         self.conv2 = nn.Conv2d(hparam1, hparam2, hparam5, padding='same')
         self.bn2 = nn.BatchNorm2d(hparam2)
-        # Residual connection to adjust channel dimensions from 16 to 32
+        # Residual connection to adjust channel dimensions
         self.res1 = nn.Conv2d(hparam1, hparam2, (1, 1))
         
-        # Third convolutional layer: Doubles the number of channels to 64 using a (1, 1) kernel and group convolution
+        # Third convolutional layer
         self.conv3 = nn.Conv2d(hparam2, hparam2 * 2, hparam6, groups=hparam2)
         self.bn3 = nn.BatchNorm2d(hparam2 * 2)
         
         # Adaptive average pooling layer to reduce the spatial dimensions to 1x1 for each feature map
         self.adaptive_pool = nn.AdaptiveAvgPool2d((1, 1))
         
-        # Two fully connected layers: the first one maps the pooled features to a 100-dimensional space
+        # Two fully connected layers
         self.fc1 = nn.Linear(hparam2 * 2, hparam3)
         self.fc2 = nn.Linear(hparam3, num_classes)
         
