@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class model1(nn.Module):
-    def __init__(self, input_shape, num_classes, dropout_rate, hparam1 = 32, hparam2 = 64, hparam3 = 128, hparam4 = (3,1), hparam5 = (1,1)):
+    def __init__(self, input_shape, num_classes, dropout_rate, hparam1 = 32, hparam2 = 64, hparam3 = 128, hparam4 = (1,3), hparam5 = (1,1)):
         super(model1, self).__init__()
         # Assumes input_shape is in the form (_, T, C, _), where T and C are the temporal and channel dimensions respectively.
         _, T, C, _ = input_shape
@@ -13,7 +13,7 @@ class model1(nn.Module):
         self.activation1 = nn.ELU()    # ELU activation function for non-linearity
 
         # Second convolution layer, using grouped convolutions for depthwise convolutions
-        self.conv2 = nn.Conv2d(hparam1, hparam1, hparam4, groups=32, padding='same')
+        self.conv2 = nn.Conv2d(hparam1, hparam1, hparam4, groups=hparam1, padding='same')
         self.bn2 = nn.BatchNorm2d(hparam1)
         self.activation2 = nn.ELU()
 
@@ -28,7 +28,7 @@ class model1(nn.Module):
         self.activation4 = nn.ELU()
 
         # Adaptive average pooling to reduce spatial dimensions to 1x1
-        self.adaptive_pool = nn.AdaptiveAvgPool2d(hparam5)
+        self.adaptive_pool = nn.AdaptiveAvgPool2d((1,1))
 
         # Fully connected layer to map the features to the class scores
         self.fc1 = nn.Linear(hparam3, num_classes)
