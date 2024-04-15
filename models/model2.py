@@ -2,6 +2,41 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class model2(nn.Module):
+    """
+    A convolutional neural network model that emphasizes spatial and temporal feature extraction with separate
+    convolutions for different dimensions. This model uses ReLU activations, batch normalization, adaptive pooling, 
+    and multiple fully connected layers, making it suitable for tasks that involve complex spatial-temporal dynamics 
+    in the data.
+
+    Arguments
+    ---------
+    input_shape : tuple
+        The shape of the input tensor, expected to be (batch_size, T, C, spatial_dim), where T is the temporal
+        dimension and C is the number of channels.
+    num_classes : int
+        The number of output classes for the classification task.
+    dropout_rate : float
+        The dropout probability used in the dropout layer to prevent overfitting.
+    hparam1 : int, default=16
+        The number of filters in the first convolutional layer.
+    hparam2 : int, default=32
+        The number of filters in the second convolutional layer.
+    hparam3 : int, default=100
+        The number of neurons in the first fully connected layer.
+    hparam4 : tuple, default=(3,1)
+        The kernel size for the first convolutional layer.
+    hparam5 : tuple, default=(1,3)
+        The kernel size for the second convolutional layer.
+
+    Example
+    -------
+    >>> import torch
+    >>> inp_tensor = torch.rand([1, 64, 3, 1])  # Example input tensor with shape (batch_size, T, C, spatial_dim)
+    >>> model = model2(input_shape=inp_tensor.shape, num_classes=5, dropout_rate=0.3)
+    >>> output = model(inp_tensor)
+    >>> print(output.shape)
+    torch.Size([1, 5])
+    """
     def __init__(self, input_shape, num_classes, dropout_rate, hparam1 = 16, hparam2 = 32, hparam3 = 100, hparam4 = (3,1), hparam5 = (1,3)):
         super(model2, self).__init__()
         _, T, C, _ = input_shape
@@ -25,6 +60,13 @@ class model2(nn.Module):
         self.fc2 = nn.Linear(hparam3, num_classes)  # Final fully connected layer to classify into `num_classes` categories
 
     def forward(self, x):
+        """Returns the output of the model.
+
+        Arguments
+        ---------
+        x : torch.Tensor (batch, time, EEG channel, channel)
+            Input to convolve. 4d tensors are expected.
+        """
         # Forward pass definitions applying layers sequentially
         x = self.relu1(self.bn1(self.conv1(x)))  # Apply conv1, then bn1, then relu1
         x = self.relu2(self.bn2(self.conv2(x)))  # Apply conv2, then bn2, then relu2

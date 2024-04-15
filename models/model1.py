@@ -2,6 +2,41 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class model1(nn.Module):
+    """
+    A convolutional neural network designed for processing multidimensional data with a focus on maintaining
+    temporal and spatial resolution. It includes multiple convolutional layers with depth-wise separable 
+    convolutions, batch normalization, ELU activations, adaptive average pooling, and a fully connected output layer. 
+    This architecture is well-suited for tasks that involve time series or multi-channel data analysis.
+
+    Arguments
+    ---------
+    input_shape : tuple
+        The shape of the input tensor, expected to be (batch_size, T, C, spatial_dim), where T is the temporal
+        dimension and C is the number of channels.
+    num_classes : int
+        The number of output classes for the classification task.
+    dropout_rate : float
+        The dropout probability used in the dropout layer for regularization.
+    hparam1 : int, default=32
+        The number of filters in the first convolutional layer.
+    hparam2 : int, default=64
+        The number of filters in the third convolutional layer.
+    hparam3 : int, default=128
+        The number of filters in the fourth convolutional layer.
+    hparam4 : tuple, default=(1,3)
+        The kernel size for the first and fourth convolutional layers.
+    hparam5 : tuple, default=(1,1)
+        The kernel size for the third convolutional layer.
+
+    Example
+    -------
+    >>> import torch
+    >>> inp_tensor = torch.rand([1, 64, 3, 1])  # Example input tensor with shape (batch_size, T, C, spatial_dim)
+    >>> model = model1(input_shape=inp_tensor.shape, num_classes=10, dropout_rate=0.5)
+    >>> output = model(inp_tensor)
+    >>> print(output.shape)
+    torch.Size([1, 10])
+    """
     def __init__(self, input_shape, num_classes, dropout_rate, hparam1 = 32, hparam2 = 64, hparam3 = 128, hparam4 = (1,3), hparam5 = (1,1)):
         super(model1, self).__init__()
         # Assumes input_shape is in the form (_, T, C, _), where T and C are the temporal and channel dimensions respectively.
@@ -37,6 +72,13 @@ class model1(nn.Module):
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
+        """Returns the output of the model.
+
+        Arguments
+        ---------
+        x : torch.Tensor (batch, time, EEG channel, channel)
+            Input to convolve. 4d tensors are expected.
+        """
         # Applying layers sequentially with functional connectivity for better flow
         x = self.bn1(self.activation1(self.conv1(x)))
         x = self.bn2(self.activation2(self.conv2(x)))
